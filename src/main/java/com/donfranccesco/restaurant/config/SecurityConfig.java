@@ -25,6 +25,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/mesas/**").permitAll()  // ← CORREGIDO: /mesas en lugar de /api/mesas
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
