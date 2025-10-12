@@ -257,4 +257,22 @@
   .mesa-actions {
     flex-direction: column;
   }
+  /* Botón de pago en MesaCard */
+  .btn-pay {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    flex: 1;
+    min-width: 60px;
+    font-weight: 600;
+  }
+
+  .btn-pay:hover {
+    background: linear-gradient(135deg, #218838, #1e9e81);
+    transform: translateY(-1px);
+  }
 }
