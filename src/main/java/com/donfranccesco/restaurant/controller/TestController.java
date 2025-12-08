@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,8 @@ public class TestController {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    // ==================== ENDPOINTS RAÍZ ====================
 
     @GetMapping("/")
     public String home() {
@@ -43,6 +47,33 @@ public class TestController {
                 "- Base de datos: Conectada\n" +
                 "- Seguridad: Configurada";
     }
+
+    // ==================== ENDPOINTS API ====================
+
+    @GetMapping("/api/test")
+    public Map<String, Object> apiTest() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "API funcionando correctamente");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("service", "Restaurante Don Franccesco API");
+        response.put("version", "1.0.0");
+        response.put("endpoints", new String[] {
+                "/api/test",
+                "/api/menu",
+                "/api/mesas",
+                "/auth/login",
+                "/auth/register",
+                "/health",
+                "/info",
+                "/db-test",
+                "/db-tables",
+                "/db-status"
+        });
+        return response;
+    }
+
+    // ==================== ENDPOINTS BASE DE DATOS ====================
 
     @GetMapping("/db-test")
     public String dbTest() {

@@ -1,7 +1,21 @@
 version: '3.8'
-services:
 
-  app:
+services:
+  # Base de datos MySQL
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=restaurante
+    ports:
+      - "3366:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Backend Spring Boot
+  backend:
     build: .
     ports:
       - "8080:8080"
@@ -15,17 +29,14 @@ services:
       - db
     restart: unless-stopped
 
-  db:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=restaurante
+  # Frontend React
+  frontend:
+    build: ./frontend
     ports:
-      - "3366:3306"  # ⚠️ Esto está bien para acceso externo
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - "3000:80"
+    depends_on:
+      - backend
     restart: unless-stopped
-    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
   mysql_data:

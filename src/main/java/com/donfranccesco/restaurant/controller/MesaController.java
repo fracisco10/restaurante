@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/mesas")
+@RequestMapping("/api/mesas")
 
 public class MesaController {
     private final MesaService mesaService;
