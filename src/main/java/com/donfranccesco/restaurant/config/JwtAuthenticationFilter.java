@@ -14,9 +14,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
+// @Component
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter{
+
+
+    private long expiration;
+
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 

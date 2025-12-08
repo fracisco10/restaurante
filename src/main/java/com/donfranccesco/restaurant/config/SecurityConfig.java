@@ -10,28 +10,29 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/health", "/test", "/info").permitAll()
+                        // NUEVO: Agregar endpoints de base de datos
+                        .requestMatchers("/db-test", "/db-tables", "/db-status").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/mesas/**").permitAll()  // ← CORREGIDO: /mesas en lugar de /api/mesas
+                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/mesas/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                );
 
-        // ✅ CORRECTO - Nueva API de frameOptions
         http.headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable())
         );

@@ -1,0 +1,234 @@
+// components/Mesa/MobileMesaCard.js
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert
+} from 'react-native';
+import { mesaService } from '../../services/mesaService';
+
+const MobileMesaCard = ({ mesa, onMesaStateChange }) => {
+  const { id, nombre, estado, capacidad } = mesa;
+
+  const handleEstadoChange = async (nuevoEstado) => {
+    try {
+      await mesaService.updateMesaEstado(id, nuevoEstado);
+      onMesaStateChange();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar el estado de la mesa');
+    }
+  };
+
+  const handleOcupar = () => handleEstadoChange('ocupada');
+  const handleLiberar = () => handleEstadoChange('libre');
+  const handlePagar = () => handleEstadoChange('pagando');
+
+  const getEstadoStyle = () => {
+    switch (estado) {
+      case 'ocupada': return styles.estadoOcupada;
+      case 'libre': return styles.estadoLibre;
+      case 'pagando': return styles.estadoPagando;
+      default: return styles.estadoLibre;
+    }
+  };
+
+  const getEstadoText = () => {
+    switch (estado) {
+      case 'ocupada': return 'OCUPADA';
+      case 'libre': return 'LIBRE';
+      case 'pagando': return 'PAGANDO';
+      default: return 'LIBRE';
+    }
+  };
+
+  const needsAttention = estado === 'pagando';
+
+  return (
+    <View style={[styles.card, needsAttention && styles.cardUrgent]}>
+      {/* Notificación para atención urgente */}
+      {needsAttention && <View style={styles.notificationDot} />}
+
+      <View style={styles.cardHeader}>
+        <View style={styles.mesaInfo}>
+          <Text style={styles.mesaNombre}>Mesa {nombre}</Text>
+          <Text style={styles.mesaCapacidad}>
+            Capacidad: <Text style={styles.capacidadBadge}>{capacidad} personas</Text>
+          </Text>
+        </View>
+
+        <View style={styles.estadoContainer}>
+          <View style={[styles.estadoIndicator, getEstadoStyle()]}>
+            <Text style={styles.estadoText}>{getEstadoText()}</Text>
+          </View>
+          <Text style={styles.mesaId}>ID: {id}</Text>
+        </View>
+      </View>
+
+      <View style={styles.actionsContainer}>
+        {estado === 'libre' && (
+          <TouchableOpacity style={styles.btnOcupar} onPress={handleOcupar}>
+            <Text style={styles.buttonText}>🍽️ OCUPAR</Text>
+          </TouchableOpacity>
+        )}
+
+        {estado === 'ocupada' && (
+          <>
+            <TouchableOpacity style={styles.btnLiberar} onPress={handleLiberar}>
+              <Text style={styles.buttonText}>🚪 LIBERAR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnPagar} onPress={handlePagar}>
+              <Text style={styles.buttonText}>💳 PAGAR</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {estado === 'pagando' && (
+          <TouchableOpacity style={styles.btnLiberar} onPress={handleLiberar}>
+            <Text style={styles.buttonText}>✅ FINALIZAR</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  cardUrgent: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#e74c3c',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    backgroundColor: '#e74c3c',
+    borderRadius: 4,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  mesaInfo: {
+    flex: 1,
+  },
+  mesaNombre: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 4,
+  },
+  mesaCapacidad: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    fontWeight: '500',
+  },
+  capacidadBadge: {
+    backgroundColor: '#3498db',
+    color: 'white',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    fontSize: 12,
+    fontWeight: '600',
+    overflow: 'hidden',
+  },
+  estadoContainer: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  estadoIndicator: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  estadoText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 12,
+    textTransform: 'uppercase',
+  },
+  estadoLibre: {
+    backgroundColor: '#54C759',
+  },
+  estadoOcupada: {
+    backgroundColor: '#ACAF59',
+  },
+  estadoPagando: {
+    backgroundColor: '#FF9500',
+  },
+  mesaId: {
+    fontSize: 11,
+    color: '#95a5a6',
+    fontWeight: '600',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  btnOcupar: {
+    flex: 1,
+    backgroundColor: '#ACAF59',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  btnLiberar: {
+    flex: 1,
+    backgroundColor: '#FF3B30',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  btnPagar: {
+    flex: 1,
+    backgroundColor: '#54C759',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 14,
+    textTransform: 'uppercase',
+  },
+});
+
+export default MobileMesaCard;
+

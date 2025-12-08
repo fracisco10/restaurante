@@ -1,16 +1,13 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
+
 WORKDIR /app
 
-# Instalar el driver de MySQL
-RUN apt-get update && apt-get install -y wget && \
-    wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-8.0.33.tar.gz && \
-    tar -xzf mysql-connector-j-8.0.33.tar.gz && \
-    mv mysql-connector-j-8.0.33/mysql-connector-j-8.0.33.jar /app/mysql-connector.jar && \
-    rm -rf mysql-connector-j-8.0.33*
-
+# Copiar el JAR de la aplicación
 COPY target/restaurante-1.0.0.jar app.jar
 
-# Agregar el connector al classpath
-ENTRYPOINT ["java", "-cp", "app.jar:mysql-connector.jar", "org.springframework.boot.loader.launch.JarLauncher"]
+# En Spring Boot, el conector MySQL debe estar incluido en el JAR
+# Si necesitas el conector, mejor agrégalo en pom.xml
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
 EXPOSE 8080
+

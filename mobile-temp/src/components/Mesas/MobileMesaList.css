@@ -1,0 +1,250 @@
+cat > components/Mesa/MobileMesaList.js << 'EOF'
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  SafeAreaView,
+  StatusBar
+} from 'react-native';
+import MobileMesaCard from './MobileMesaCard';
+import { mesaService } from '../../services/mesaService';
+
+const MobileMesaList = () => {
+  const [mesas, setMesas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
+
+  const loadMesas = async () => {
+    try {
+      setError(null);
+      const mesasData = await mesaService.getMesas();
+      setMesas(mesasData);
+    } catch (err) {
+      setError('Error al cargar las mesas');
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadMesas();
+  };
+
+  useEffect(() => {
+    loadMesas();
+  }, []);
+
+  const mesasLibres = mesas.filter(m => m.estado === 'libre').length;
+  const mesasOcupadas = mesas.filter(m => m.estado === 'ocupada').length;
+  const mesasPagando = mesas.filter(m => m.estado === 'pagando').length;
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Cargando mesas...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorMessage}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadMesas}>
+          <Text style={styles.retryButtonText}>Reintentar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#667eea" />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>🍽️ Gestor de Mesas</Text>
+        <View style={styles.headerControls}>
+          <View style={styles.counter}>
+            <Text style={styles.counterText}>{mesas.length} mesas</Text>
+          </View>
+          <TouchableOpacity style={styles.refreshButton} onPress={onRefresh}>
+            <Text style={styles.refreshButtonText}>🔄</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <FlatList
+        data={mesas}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <MobileMesaCard mesa={item} onMesaStateChange={loadMesas} />
+        )}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#667eea']}
+          />
+        }
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+
+      <View style={styles.footer}>
+        <Text style={styles.footerTitle}>Resumen del estado</Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: '#54C759' }]}>
+              {mesasLibres}
+            </Text>
+            <Text style={styles.statLabel}>Libres</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: '#ACAF59' }]}>
+              {mesasOcupadas}
+            </Text>
+            <Text style={styles.statLabel}>Ocupadas</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: '#FF9500' }]}>
+              {mesasPagando}
+            </Text>
+            <Text style={styles.statLabel}>Pagando</Text>
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#667eea',
+  },
+  header: {
+    backgroundColor: 'white',
+    padding: 20,
+    paddingTop: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  headerControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  counter: {
+    backgroundColor: '#3498db',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  counterText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  refreshButton: {
+    backgroundColor: '#54C759',
+    padding: 10,
+    borderRadius: 20,
+  },
+  refreshButtonText: {
+    fontSize: 16,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  footer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  footerTitle: {
+    textAlign: 'center',
+    color: '#7f8c8d',
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#95a5a6',
+    marginTop: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#667eea',
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#667eea',
+    padding: 20,
+  },
+  errorMessage: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#e74c3c',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+});
+
+export default MobileMesaList;
+EOF
